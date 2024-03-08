@@ -1,0 +1,46 @@
+.data
+    mystring: .string "this is my string"
+
+# text segment: where the code goes
+.text
+	# function to add linefeeds
+	linefeed:
+    	# save previous values to temporary registers to restore them later
+        mv t0, a0
+        mv t1, a7
+
+		li a0, 10 # LF is 10 in ASCII decimal
+      	li a7, 11 # call code 11 means print char
+      	ecall
+        
+        # restore registers
+        mv a0, t0
+        mv a7, t1
+
+		jr ra # return to the point of origin
+
+    main:
+        la a0, mystring # load address of mystring to a0
+        li a7, 4 # call code 4 means print string at address stored in a0
+        ecall # system call
+        
+        jal ra, linefeed
+        
+        li a7, 1
+        la a0, mystring
+        lb a0, 0(a0) # load byte from address in register a0 with offset 0
+        ecall
+
+        # use jump and link because you want to save the return address as you jump
+        jal ra, linefeed
+
+        # print address of mystring
+        la a0, mystring # load address of mystring to a0
+        ecall
+        
+        jal ra, linefeed
+        
+        # print the 2nd char
+        li a7, 11 # call code 11 means print char
+        lb a0, 1(a0) # load byte from address in register a0 with offset 1
+        ecall
