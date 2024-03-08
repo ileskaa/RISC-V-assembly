@@ -44,3 +44,11 @@
         li a7, 11 # call code 11 means print char
         lb a0, 1(a0) # load byte from address in register a0 with offset 1
         ecall
+        
+	# loop through the bytes or words. Load into register. Check if value is non-zero
+	while: beq a0, zero # jump to end_while if a0 == 0
+        
+	end_while: li a7, 1
+    	ecall
+        
+        jr ra # exit
