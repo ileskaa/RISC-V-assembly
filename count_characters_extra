@@ -1,0 +1,90 @@
+# Storing the character count to register s4 gave a warning about a possible failure in the parameter passing convention.
+# It disappeared s4 was replaced with a1.
+# Likely because s4 was not preserved across the function call. Its value had changed significantly when main was exited.
+
+# This program will print:
+# the actual string
+# the decimal ASCII code of the first character
+# the address of the string in memory
+# the second letter of the string
+# and finally the char count.
+
+.data # data segment
+    mystring: .string "this is my string"
+
+.text # text segment: where the code goes
+	# function to add linefeeds
+	linefeed:
+    	# save previous values to temporary registers to restore them later
+        mv t0, a0
+        mv t1, a7
+
+		li a0, 10 # LF is 10 in ASCII decimal
+      	li a7, 11 # call code 11 means print char
+      	ecall
+        
+        # restore registers
+        mv a0, t0
+        mv a7, t1
+
+		jr ra # return to the point from which this function was called
+
+    main:
+    	# ra will be modified so we'll have to restore it before exiting main
+    	addi sp,sp,-4 # create space on stack
+        sw ra, 0(sp) # save return addr to stack
+
+        la a0, mystring # load address of mystring to a0
+        li a7, 4 # call code 4 means print string at address stored in a0
+        ecall # system call
+        
+        # use jump and link because you want to save the current address as return address as you jump
+        jal ra, linefeed
+        
+        li a7, 1
+        la t1, mystring
+        lb a0, 0(t1) # load byte from address in register t1 with offset 0
+        ecall
+
+        jal ra, linefeed
+
+        # print address of mystring
+        la a0, mystring # load address of mystring to a0
+        ecall
+        
+        jal ra, linefeed
+        
+        # print the 2nd char
+        li a7, 11 # call code 11 means print char
+        lb a0, 1(a0) # load byte from address in register a0 with offset 1
+        ecall
+        
+        # the number of characters will be stored to a1
+        li a1, 0
+        
+        # store the address of the string to a2
+        la a2, mystring
+        # load the first byte
+        lb a3, 0(a2)
+        
+	# loop through the bytes or words. Load into register. Check if value is non-zero
+	while:
+        beq a3, zero, end_while # jump to end_while if a3 == 0
+    	addi a1, a1, 1
+        lb a3, 1(a2) # load byte from address in register a2 with offset 1
+        addi a2, a2, 1 # save the address of the next byte
+
+        # keep looping
+        beq zero, zero, while
+
+	end_while:
+    	jal ra, linefeed
+
+		mv a0, a1
+        li a7, 1 # call code to print int
+    	ecall
+
+        lw ra, 0(sp) # get original return address from stack
+        addi sp,sp,4 # restore stack
+
+        jr ra # exit main
