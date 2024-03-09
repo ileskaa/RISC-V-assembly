@@ -1,0 +1,29 @@
+.data # data segment
+    mystring: .string "this is my string"
+
+.text # text segment: where the code goes
+    main:        
+        # the number of characters will be stored to a0
+        li a0, 0
+        
+        # store the address of the string to a2
+        la a2, mystring
+        # load the first byte
+        lb a3, 0(a2) # could use lw to load a word instead of lb
+        
+	# loop through the bytes or words. Load into register. Check if value is non-zero
+	while:
+        beq a3, zero, end_while # jump to end_while if a3 == 0
+    	addi a0, a0, 1 # increment counter
+        # could use lw to load a word instead of lb. In that case the offset would need to be 4
+        lb a3, 1(a2)
+        addi a2, a2, 1 # save the next address. Use 1 if working with bytes, 4 if working with words
+
+        # keep looping
+        beq zero, zero, while
+
+	end_while:
+        li a7, 1 # call code to print int
+    	ecall
+
+        jr ra # exit main
