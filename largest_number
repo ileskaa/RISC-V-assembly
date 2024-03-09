@@ -1,4 +1,5 @@
-# write a subroutine (function), which, given 3 inputs, finds the largest of them
+# Subroutine (function), which, given 3 inputs, finds the largest of them
+#
 .text
     main:
         # enter the values to be compared to the following registers
@@ -6,11 +7,11 @@
         li a1, 2
         li a2, 4
 
-        mv t1, ra
+        mv t0, ra # save return address to restore it after function call
 
         jal ra, largest_int
 
-        mv ra, t1 # restore the return address
+        mv ra, t0 # restore return address
 
         # print largest int
         li a7, 1 # call code 1 for int
@@ -20,9 +21,23 @@
 
     largest_int:
         # check if the value in a0 is smaller than the value in a1.
-        # If it is, t0 gets assigned a value of 1
-        slt t0, a0, a1
+        blt a0, a1, compare12
+
+        # check if the value in a0 is smaller than the value in a2
+        blt a0, a2, exit2
 
         # the return value goes to the caller as the value of reg. a0
-
         jr ra # return to calling location
+
+    # subroutine to compare the values in reg. a1 & a2
+    compare12:
+        blt a1, a2, exit2
+
+        # if the condition above is not met, a1 holds the largest val
+        mv a0, a1
+        jr ra # back to main
+
+    # subroutine for cases when a2 holds the largest value
+    exit2:
+        mv a0, a2
+        jr ra # back to main
