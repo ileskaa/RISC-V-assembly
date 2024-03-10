@@ -1,7 +1,17 @@
-# store 3 ints to memory
+# program that reads integers from memory and returns the largest of them
+#
+.data
+    # store integers 1, 10, 17 to memory
+    # we store them as an array since it makes them easy to access using offsets
+    ints: .word 1,10,17
+
 .text
     main:
-        # store integers 1, 10, 17 to memory
+        # load the integers from memory and save into registers
+    	la t0, ints
+        lw a0, 0(t0)
+        lw a1, 4(t0)
+        lw a2, 8(t0)
 
         mv t3, ra # save return address to restore it after function call
 
