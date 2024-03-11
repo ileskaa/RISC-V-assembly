@@ -1,4 +1,79 @@
-# Subroutine that finds the largest number given any number of inputs
+# Subroutine, which, given any number of integers, finds the largest of them.
+# The stack will allow us to pass more parameters than the registers could hold
 #
+.data
+    # store integers to memory
+    # we store them as an array since it makes them easy to access using offsets
+    ints: .word 1,10,17,9,8
+
 .text
     main:
+        addi sp, sp, -20 # reserve space on stack
+
+        li t0,1
+        li t1,10
+        li t2,17
+
+        sw t0,0(sp)
+        sw t1,4(sp)
+        sw t2,8(sp)
+
+        li t0,9
+        li t1,8
+
+        sw t0,12(sp)
+        sw t1,16(sp)
+
+        # we'll need a loop
+        # probably good idea to always load just 2 values to registers a0 and a1
+        li t0,0 # we need a counter
+        li t1,16 # upper bound for the loop
+        lw a0,0(sp) # intialize a0 with the first value
+        while: bgt t0,t1,exit
+            lw a1,4(sp)
+
+            addi t0,t0,4 # increment the counter
+
+            beq zero,zero,while
+
+        # enter the values to be compared to the following registers
+        li a0, 1
+        li a1, 2
+        li a2, 4
+
+        mv t0, ra # save return address to restore it after function call
+
+        jal ra, largest_int
+
+        mv ra, t0 # restore return address
+
+        # print largest int
+        li a7, 1 # call code 1 for int
+        ecall
+
+        addi sp,sp,20 # restore stack
+
+        jr ra # exit main
+
+    largest_int:
+        # check if the value in a0 is smaller than the value in a1.
+        blt a0, a1, compare12
+
+        # check if the value in a0 is smaller than the value in a2
+        blt a0, a2, exit2
+
+        # the return value goes to the caller as the value of reg. a0
+        jr ra # return to calling location
+
+    # subroutine to compare the values in reg. a1 & a2
+    compare12:
+        blt a1, a2, exit2
+
+        # if the condition above is not met, a1 holds the largest val
+        mv a0, a1
+        jr ra # back to main
+
+    # subroutine for cases when a2 holds the largest value
+    exit2:
+        mv a0, a2
+        jr ra # back to main
