@@ -1,0 +1,89 @@
+# program that reads a positive integer, and:
+# if 1 <= value <= 12: the program calculates the factorial and prints
+# "The factorial of the given number is <x>"
+# else: print "Invalid number"
+# because 13! can no longer be represented as a 32-bit number
+#
+.data
+mystring: .string "Enter a positive integer: "
+invalid: .string "Invalid number"
+result_is: .string "The factorial of the given number is: "
+
+.text
+main:
+    la a0,mystring
+    li a7,4 # call code 4 is for printing a string
+    ecall
+
+    li a7,5 # call code 5 is used to read an int and save it to a0 (x10)
+    ecall
+    li a7,1
+    ecall
+
+    # line break
+    mv t0,a0
+    li a0,10 # 10 is line feed in ASCII
+    li a7,11 # code 11 means ptint char
+    ecall
+    mv a0,t0
+
+    # exit if invalid number
+    li t0,12
+    bgt a0,t0,invalid_nb
+    ble a0,zero,invalid_nb
+
+    # save return address to the stack
+    addi sp, sp, -4
+    sw ra, 0(sp)
+
+    jal ra,factorial
+
+    # print result
+    mv t0,a0 # save result to temp. var
+    la a0,result_is
+    li a7,4
+    ecall
+    mv a0,t0
+    li  a7, 1
+    ecall
+
+    # restore stack and return
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    jr ra
+
+factorial:
+    # create stack frame to store $ra, frame pointer, and a local variable
+    addi sp, sp, -12
+    sw   ra, 8(sp) # return adress to stack
+    sw   fp, 4(sp) # frame pointer to stack
+    addi fp, sp, 4 # set $fp to point to the base of the stack
+
+    # if (a0 < 2): return 1
+    li   x5, 2  # x5 == t0
+    bge  a0, t0, b_else  # if a0 >= 2, jump to b_else
+    li   a0, 1 
+    beq  x0, x0, b_efs
+
+# else:
+#    return a0 * factorial(a0 - 1)
+b_else: sw   a0, -4(fp)  # store the value of a0 to the stack
+    addi a0, a0, -1
+    jal  x1, factorial
+    lw   t1, -4(fp)  # load the value that was previously stored to the stack
+    mul  a0, a0, t1
+
+# restore stack frame to its original state
+b_efs:  lw   ra, 8(sp)
+    lw   fp, 4(sp)
+    addi sp, sp, 12
+
+    # return t0
+    jr ra
+
+invalid_nb:
+    # print string
+    la a0,invalid
+    li a7,4
+    ecall
+    ret
